@@ -1,0 +1,242 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link type="text/css"
+	href="css/south-street/jquery-ui-1.8.10.custom.css" rel="stylesheet" />
+<script type="text/javascript" src="js/jquery-1.4.4.min.js"></script>
+<script type="text/javascript" src="js/jquery-ui-1.8.10.custom.min.js"></script>
+<title>Play Vocabulary Cards</title>
+<script type="text/javascript">
+$(function(){
+	init();
+});
+
+function showLoading(){
+	$('#playcard-content').html('<img src="images/loading.gif"/>Loading...');
+}	
+
+function hideLoading(){
+	$('#playcard-content').html('');
+}	
+
+function VocabularyCard(i_id, i_name, i_speech, i_defs, i_examples){
+	var id = i_id;
+	var name = i_name;
+	var speech = i_speech;
+	var defs = i_defs;
+	var examples = i_examples;
+	
+	this.getID = function(){
+		return id;
+	};
+	this.getName = function(){
+		return name;
+	};
+	this.getSpeech = function(){
+		return speech;
+	};
+	this.getDefinitions = function(){
+		return defs;
+	};
+	this.getExamples = function(){
+		return examples;
+	};
+}
+
+function showVocabularyCard(vc){
+	var content = $('#playcard-content');
+	content.empty();
+	var id = vc.getID();
+	var name = vc.getName();
+	var speech = vc.getSpeech();
+	var table = '<span id="' + id  + '_span"><table id="' + id + '" class="ui-widget ui-widget-content" width="80%" height="150">';
+	table += '<thead><tr class="ui-widget-header" height="10"><th width="10%" align="left">#id '+id+'</th>';
+	table += '<th width="25%" align="left"><font style="color: red; font-variant: normal;">' + name + '</font>';
+	table += '<span> <b>' + speech + '</b></span></th></tr></thead><tbody><tr>';
+	table += '<td id="' + id + '_td" colspan="2">';
+	
+	var deflist = vc.getDefinitions();
+	var examplelist = vc.getExamples();
+	var td = deflist.length == 0 ? '&nbsp;' : '';
+	for( var i = 0 ; i < deflist.length ; i++ ){
+		td += '<span><b>' + deflist[i] + '</b></span>, ';
+		td += '<span>' + examplelist[i] + '</span><br>';
+	}
+	table += td;
+	table += '</td></tr></tbody></table><br></span>';
+	content.append(table);
+}
+
+function initVocabularyCards(xml){
+	var root = $(xml).find('root');
+	var vclist = root.children('vc');
+	totolNumber = vclist.length; //fuck...拚錯了
+	
+	if( totolNumber == 0){
+		var content = $('#playcard-content');
+		content.empty();
+		content.html('<font color="red">Please add a vocabulary card...</font>');
+		return ;
+	}
+	
+	vocabularyCards = new Array(totolNumber);
+	vclist.each(function(i){
+		var vcNode = $(this);
+		var id = vcNode.attr('id');
+		var name = vcNode.attr('name');
+		var speech = vcNode.attr('speech');
+		var deflist = vcNode.children('def');
+		var defs = new Array(deflist.length);
+		var examples = new Array(deflist.length);
+		deflist.each(function(j){
+			var defNode = $(this);
+			var defName = defNode.attr('name');
+			var example = defNode.text();
+			defs[j] = defName;
+			examples[j] = example;
+		});
+		var vc = new VocabularyCard(id, name, speech, defs, examples);
+		vocabularyCards[i] = vc;
+	});
+	showVocabularyCard(vocabularyCards[currentIndex]);
+}
+
+function init(){
+	showLoading();
+	$.ajax({
+		  url: 'ajax/loadVocabularyCards.jsp',
+		  type: 'POST',
+		  dataType: 'xml',
+		  success: function(data){
+			  hideLoading();
+			  initVocabularyCards(data);
+		  }
+	});
+}
+
+var currentIndex = 0;
+var totolNumber = 0;
+var vocabularyCards;
+
+function prev(){
+	var pn = currentIndex-1;
+	if( totolNumber == 0 ){
+		return;
+	}
+	if( pn < 0 ) {
+		showMsg('First..');
+		return;
+	}
+	currentIndex = pn;
+	showVocabularyCard(vocabularyCards[pn]);
+	showMsg('');
+}
+
+function next(){
+	var nn = currentIndex+1;
+	if( totolNumber == 0 ){
+		return;
+	}
+	if( nn == totolNumber ) {
+		showMsg('Last..');
+		return;
+	}
+	currentIndex = nn;
+	showVocabularyCard(vocabularyCards[nn]);
+	showMsg('');
+}
+
+function first(){
+	if( totolNumber == 0 ){
+		return;
+	}
+	if( currentIndex == 0 ) return;
+	showVocabularyCard(vocabularyCards[0]);
+	showMsg('');
+}
+
+function end(){
+	var maxn = totolNumber-1;
+	if( totolNumber == 0 ){
+		return;
+	}
+	if( currentIndex == maxn ) return;
+	showVocabularyCard(vocabularyCards[max]);
+	showMsg('');
+}
+
+function play(){
+	if( totolNumber == 0 ){
+		return;
+	}
+	showMsg('Working..');
+}
+
+function pause(){
+	if( totolNumber == 0 ){
+		return;
+	}
+	showMsg('Working..');
+}
+
+function showMsg(msg){
+	$('#action-msg').text(msg);
+}
+
+
+
+</script>
+<style type="text/css">
+ul#icons {
+	margin: 0;
+	padding: 0;
+}
+
+ul#icons li {
+	margin: 2px;
+	position: relative;
+	padding: 4px 0;
+	cursor: pointer;
+	float: left;
+	list-style: none;
+}
+
+ul#icons span.ui-icon {
+	float: center;
+	margin: 0 4px;
+}
+</style>
+</head>
+<body>
+<br>
+<table border="0" width="80%">
+	<tr>
+		<td align="center">
+		<ul id="icons" class="ui-widget ui-helper-clearfix">
+			<li onclick="first();" class="ui-state-default ui-corner-all"
+				title=".ui-icon-seek-first"><span
+				class="ui-icon ui-icon-seek-first"></span></li>
+			<li onclick="prev();" class="ui-state-default ui-corner-all" title="Prev"><span
+				class="ui-icon ui-icon-seek-prev"></span></li>
+			<li onclick="play();" class="ui-state-default ui-corner-all" title="Play"><span
+				class="ui-icon ui-icon-play"></span></li>
+			<li onclick="pause();" class="ui-state-default ui-corner-all" title="Pause"><span
+				class="ui-icon ui-icon-pause"></span></li>
+			<li onclick="next();" class="ui-state-default ui-corner-all" title="Next"><span
+				class="ui-icon ui-icon-seek-next"></span></li>
+			<li onclick="end();" class="ui-state-default ui-corner-all" title="End"><span
+				class="ui-icon ui-icon-seek-end"></span></li>
+			<li>&nbsp;<span id='action-msg' style="color: red; font: bold;"></span></li>
+		</ul>
+		<br>
+		</td>
+	</tr>
+	<tr>
+		<td id="playcard-content">
+		
+		</td>
+	</tr>
+</table>
+</body>
+</html>

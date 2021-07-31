@@ -1,0 +1,144 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>My Vocabulary Card</title>
+<link type="text/css"
+	href="css/south-street/jquery-ui-1.8.10.custom.css" rel="stylesheet" />
+<link type="text/css" href="css/demos.css" rel="stylesheet" />
+<script type="text/javascript" src="js/jquery-1.4.4.min.js"></script>
+<script type="text/javascript" src="js/jquery-ui-1.8.10.custom.min.js"></script>
+<style type="text/css">
+.layout-grid td.normal {
+	border-left: 1px solid #eee;
+	padding: 20px 24px;
+	font-family: "Trebuchet MS", "Helvetica", "Arial", "Verdana",
+		"sans-serif";
+}
+</style>
+<script type="text/javascript">
+			
+			$(function(){
+				var innerHeight = document.documentElement.clientHeight;
+				$('#maintable').attr('height', innerHeight - 100);
+				
+				
+				$('#main-content').load('Introduction.html');
+				// Accordion
+				$("#accordion").accordion({ header: "h3", autoHeight: false });
+				
+				$('#accordion a').click(function(ev){
+					window.location.hash = this.href.replace(/.+\/([^\/]+)\.html/,'$1');
+					loadPage(this.href);
+				});
+				
+				function loadPage(path) {			
+					var section = path.replace(/\/[^\/]+\.html/,'');
+					var header = section.replace(/.+\/([^\/]+)/,'$1').replace(/_/, ' ');
+
+					$('#main-content').empty();
+					$('#main-content').load(path);
+					/*
+					$('td.normal div.normal')
+						.empty()
+						.append('<h4 class="demo-subheader">Functional demo:</h4>')
+						.append('<h3 class="demo-header">'+ header +'</h3>')
+						.append('<div id="demo-config"></div>')
+						.find('#demo-config')
+							.append('<div id="demo-frame"></div><div id="demo-config-menu"></div><div id="demo-link"><a class="demoWindowLink" href="#"><span class="ui-icon ui-icon-newwin"></span>Open demo in a new window</a></div>')
+							.find('#demo-config-menu')
+								.load(section + '/index.html .demos-nav', function() {
+									$('#demo-config-menu a').each(function() {
+										this.setAttribute('href', section + '/' + this.getAttribute('href').replace(/.+\/([^\/]+)/,'$1'));
+										$(this).attr('target', 'demo-frame');
+										$(this).click(function() {
+
+											resetDemos();
+											
+											$(this).parents('ul').find('li').removeClass('demo-config-on');
+											$(this).parent().addClass('demo-config-on');
+											$('#demo-notes').fadeOut();
+
+											//Set the hash to the actual page without ".html"
+											window.location.hash = header + '|' + this.getAttribute('href').match((/\/([^\/\\]+)\.html/))[1];
+
+											loadDemo(this.getAttribute('href'));
+
+											return false;
+										});
+									});
+
+									if (window.location.hash) {
+										var demo = window.location.hash.split('|')[1];
+										$('#demo-config-menu a').each(function(){
+											if (this.href.indexOf(demo + '.html') !== -1) {
+												$(this).parents('ul').find('li').removeClass('demo-config-on');
+												$(this).parent().addClass('demo-config-on');									
+												loadDemo(this.href);										
+											}
+										});
+									}
+
+									updateDemoNotes();
+								})
+							.end()
+							.find('#demo-link a')
+								.bind('click', function(ev){
+									window.open(this.href);
+									ev.preventDefault();
+								})
+							.end()
+						.end()
+					;
+					
+					resetDemos();*/
+				}
+				
+			});		
+		</script>
+</head>
+<body bgcolor="#ffffff" topmargin="0" leftmargin="0" rightmargin="0">
+<table width="100%" border="0" cellpadding="0" cellspacing="0">
+	<tr>
+		<td align="left" scope="col" colspan="2">
+		<table width="100%" border="0" cellpadding="0" cellspacing="0">
+			<tr>
+				<td align="left" scope="col"><img src="images/head_banner.png"></td>
+				<td width="100%" background="images/background.png" scope="col">&nbsp;</td>
+			</tr>
+		</table>
+		</td>
+	</tr>
+</table>
+<table id="maintable" width="100%" height="100%" border="0"
+	class="layout-grid">
+	<tr>
+		<td width="18%">
+		<div id="accordion">
+		<div>
+		<h3><a href="Introduction.html">Introduction</a></h3>
+		<div>Forward to index page.</div>
+		</div>
+		<div>
+		<h3><a href="CreateCard.html">Create Card</a></h3>
+		<div>You can search a word to create a vocabulary card.</div>
+		</div>
+		<div>
+		<h3><a href="CardBox.html">Card Box</a></h3>
+		<div>The box stores the vocabulary cards you created.</div>
+		</div>
+		<div>
+		<h3><a href="Secret.html">Secret</a></h3>
+		<div>Future work area. Not my secret.</div>
+		</div>
+		</div>
+		</td>
+		<td class="normal" width="100%" valign="top">
+
+		<div id="main-content"></div>
+
+		</td>
+	</tr>
+</table>
+</body>
+</html>

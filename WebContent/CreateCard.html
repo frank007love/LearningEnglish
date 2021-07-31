@@ -1,0 +1,299 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Create Card</title>
+<script type="text/javascript" src="js/jquery-1.4.4.min.js"></script>
+<script type="text/javascript" src="js/jquery-ui-1.8.10.custom.min.js"></script>
+<script type="text/javascript">
+	function showSearchResult(xmlObj){
+		var user_content_div = $('#content');
+		var root = $(xmlObj).find('root');
+		var speechlist = root.children();
+
+		if( speechlist.length == 0 ){
+			user_content_div.html('<font color="red">Can\'t find the result!</font>');
+			return;
+		}
+		var searchWord = $('#searchword').val();
+		user_content_div.append('<h3><b>Vocabulary:</b> <font color="red">' + $('#searchword').val() + '</font></h3>');
+		speechlist.each(function(index){
+			var speechNode = $(this);
+			var speech = speechNode.attr('name');
+			var table = '<table id="' + speech + '" class="ui-widget ui-widget-content" width="80%">';
+			table += '<thead><tr class="ui-widget-header"><th width="25%" align="center"><b>Def / Speech</b></th>';
+			table += '<th>' + speech + createAddSpeechImage(searchWord, speech) + createDeleteSpeechImage(searchWord, speech) + '</th>';
+			table += '<th width="15%" align="center"><b>Actions</b></th></tr></thead><tbody>';
+			table += getDefTrBySpeechNode(speechNode, index);
+			table += '</tbody></table>';
+			user_content_div.append(table);
+			user_content_div.append('<br>');
+		});
+	}
+	function createAddSpeechImage(searchWord, speech){
+		return '<img src="images/add3.png" style="cursor: pointer;" title="Create a card."' + 
+			'onclick="createNewCard(\'' + searchWord + '\',\'' + speech + '\');"/>';
+	}
+	function createNewCard(searchWord, speech){
+		$.ajax({
+			  url: 'ajax/createVocabularyCard.jsp',
+			  type: 'POST',
+			  dataType: 'html',
+			  data: ({ 'speech': encodeURIComponent(speech), 'word': encodeURIComponent(searchWord) }),
+			  success: function(data){
+				  if( data == 'false' ){
+					  showFeedBack('Add failure: You had added the speech.');
+					  //window.alert('Add failure: You had added the speech.');
+				  } else {
+					  createNewCardLayout(searchWord, speech, data)
+				  }
+			  }
+		});
+	}
+	function getTableID(searchWord, speech){
+		return $.trim(searchWord + '_' + speech + '_table');
+	}
+	function createNewCardLayout(searchWord, speech, id){
+		var content_div = $('#card-previous-content');//getTableID(searchWord, speech)
+		var table = '<span id="' + id  + '_span"><table id="' + id + '" class="ui-widget ui-widget-content" width="100%" height="150">';
+		table += '<thead><tr class="ui-widget-header" height="10"><th width="10%" align="left">#id</th>';
+		table += '<th width="25%" align="left"><font style="color: red; font-variant: normal;">' + searchWord + '</font>';
+		table += '<span> <b>' + speech + '</b></span></th></tr></thead><tbody><tr>';
+		table += '<td id="' + id + '_td" colspan="2">&nbsp;';
+		table += '</td></tr></tbody></table><br></span>';
+		content_div.append(table);
+	}
+	function createDeleteSpeechImage(searchWord, speech){
+		return '<img src="images/drop2.png" style="cursor: pointer;" title="Drop a card."' + 
+			'onclick="deleteCard(\'' + searchWord + '\', \'' + speech + '\');"/>';
+	}
+	function deleteCard(searchWord, speech){
+		if( !confirm('Are you sure?') ){
+			return;
+		}
+		$.ajax({
+			  url: 'ajax/deleteVocabularyCard.jsp',
+			  type: 'POST',
+			  dataType: 'xml',
+			  data: ({ 'speech': encodeURIComponent(speech), 'word': encodeURIComponent(searchWord) }),
+			  success: function(xmlObj){
+				  var root = $(xmlObj).find('root');
+				  var idlist = root.children();
+				  if( idlist.length == 0 ){
+					  showFeedBack('You need add first.');
+					  //window.alert('You need add first.');
+				  } else {
+					  idlist.each(function(i){
+						  var id = $(this).text();
+						  $('#'+id+'_span').remove();
+					  });
+					  showFeedBack("Delete success!");
+					  //window.alert('Delete success!');
+				  }
+			  }
+		});
+	}
+	function addExampleToCard(speech, def, s_index, index){
+		var example = $('#'+getExampleTdId(s_index, index)).text();
+		$.ajax({
+			  url: 'ajax/addExampleToCard.jsp',
+			  type: 'POST',
+			  dataType: 'html',
+			  data: ({ 'speech': encodeURIComponent(speech), 'def': encodeURIComponent(def), 
+				  'example': encodeURIComponent(example) }),
+			  success: function(data){
+				  if( data == 'false' ){
+					  showFeedBack('Only support 3 examples currently.');
+					  //window.alert('Only support 3 examples currently.');
+				  } else if( data == -1 ){
+					  showFeedBack('You need to add the speech first.');
+					  //window.alert('You need to add the speech first.');
+				  } else {
+					  var id = data+'_td';
+					  var tdobj = $('#'+id);
+					  if( tdobj.html() == "&nbsp;" ){
+						  tdobj.empty();
+					  }
+					  var all_span_id = id+'_allspan'+index;
+					  var def_span_id = id+'_defspan'+index;
+					  var exa_span_id = id+'_exaspan'+index;
+					  if( $('#'+def_span_id).text() == "" ){
+						  var td = '<span id="'+ all_span_id +'"><span id="' + def_span_id + '"><b>' + def + '</b></span>, ';
+						  td += '<span id="' + exa_span_id +'">' + example + '</span><br></span>';
+						  tdobj.append(td);
+					  } else {
+						  $('#'+exa_span_id).html(example);
+					  }
+				  }
+			  }
+		});
+	}
+	function deleteExampleFromCard(speech, def, s_index, index){
+		if( !confirm('Are you sure?') ){
+			return;
+		}
+		$.ajax({
+			  url: 'ajax/deleteExampleFromCard.jsp',
+			  type: 'POST',
+			  dataType: 'html',
+			  data: ({ 'speech': encodeURIComponent(speech), 'def': encodeURIComponent(def) }),
+			  success: function(data){
+				  if( data == 'false' ){
+					  showFeedBack('You need to add first.');
+				  } else {
+					  var id = data+'_td';
+					  var all_span_id = id+'_allspan'+index;
+					  $('#'+all_span_id).remove();
+				  }
+			  }
+		});
+	}
+	function createAddDefExampleImage(speech, def, s_index, index){
+		return '<img src="images/add3.png" style="cursor: pointer;"' +
+		'title="Add the definition to the card."' + 
+		' onclick="addExampleToCard(\'' + speech + '\',\'' + def + '\',\'' + s_index + '\',\'' + index + '\');"/>';
+	}
+	function createDeleteDefExampleImage(speech, def, s_index, index){
+		return '<img src="images/drop2.png" style="cursor: pointer;"' +
+		'title="Drop the definition from the card." onclick="deleteExampleFromCard(\'' + speech + '\',\'' + def + '\',\'' + s_index + '\',\'' + index + '\');"/>';
+	}
+	function getExampleTdId(s_index, d_index){
+		return s_index+'_'+d_index+'td';
+	}
+	function modifyExample(td){
+		if( $('#input_temp_h').val() == 'temp' ) return;
+		var tdObj = $(td);
+		var oringialVal = tdObj.text();
+		tdObj.empty();
+		tdObj.append('<textarea width="100%" id="input_temp">'+oringialVal+'</textarea>');
+		tdObj.append('<input type="hidden" id="input_temp_h" value="temp"/>');
+		$('#input_temp').focusout(function(){
+			var value = $('#input_temp').val();
+			tdObj.empty();
+			tdObj.append(value);
+			$('#input_temp_h').remove();
+		});
+		$('#input_temp').focus();
+	}
+	function getDefTrBySpeechNode(speechNode, s_index){
+		var deflist = speechNode.children();
+		var speech = speechNode.attr('name');
+		var tr = '';
+		deflist.each(function(index){
+			var defNode = $(this);
+			var defName = defNode.attr('name');
+			var exampleList = defNode.children('example');
+			tr += '<tr><td align="left">' + defName + '</td><td onclick="modifyExample(this);" id="' + getExampleTdId(s_index, index) + '" colspan="1">';
+			if( exampleList.length > 0 ){
+				var example = exampleList[0];
+				tr += $(example).text();	
+			} else {
+				tr += 'No example.';
+			}
+			tr += '</td><td>' + createAddDefExampleImage(speech, defName, s_index, index) + createDeleteDefExampleImage(speech, defName, s_index, index) + '</td></tr>';
+		});
+		return tr;
+	}
+	
+	function saveVocabularyCard(){
+		if( !confirm('Are you sure?') ){
+			return;
+		}
+		$.ajax({
+			  url: 'ajax/saveVocabularyCard.jsp',
+			  type: 'POST',
+			  dataType: 'html',
+			  success: function(data){
+				  if( data == 'false' ){
+					showFeedBack('You need to create a card.');  
+				  } else {
+					showFeedBack("Compelte!");
+					$('#card-previous-content').empty();
+					$('#content').empty();
+				  }
+			  }
+		});
+	}
+	
+	
+	function search(){
+		var word = $('#searchword').val();
+		showLoading();
+		$.ajax({
+			  url: 'ajax/searchWord.jsp',
+			  type: 'POST',
+			  dataType: 'xml',
+			  data: ({ searchword: encodeURIComponent(word) }),
+			  success: function(data){
+				  hideLoading();
+				  showFeedBack('');
+				  showSearchResult(data);
+			  }
+		});
+	}
+	
+	function showLoading(){
+		$('#content').html('<img src="images/loading.gif"/>Loading...');
+	}	
+	
+	function hideLoading(){
+		$('#content').html('');
+	}	
+	
+	function showFeedBack(msg){
+		$('#feedback-panel').text(msg);
+		$('#feedback-panel').hide('shake', null, 2000, 
+			function(){
+				$('#feedback-panel').empty();
+				$('#feedback-panel').show();
+		});
+	}
+	
+</script>
+</head>
+<body>
+
+<h3>Create Vocabulary Card</h3>
+<div>
+<table border="0">
+<tr><td width="350px"><p>
+<b>Enter a Word:</b> <input id="searchword" />
+<button onclick="search();">Generate</button></p>
+</td><td><p><span id="feedback-panel" style="color: red; font: bold; width: 300px"></span></p></td></tr>
+</table>
+</div>
+<br>
+<table border="0" width="100%">
+	<tr>
+		<td width="50%">
+		<div id="content" style="margin-left: 20px"></div>
+		</td>
+		<td width="35%">
+		<h3><b>Card Previous:</b></h3>
+		<div id="card-previous-content"><!-- <table class="ui-widget ui-widget-content" width="80%" height="150">
+					<thead>
+						<tr class="ui-widget-header">
+							<th width="10%" align="left">#id</th>
+							<th width="25%" align="left"><font style="color: red; font-variant: normal;">test</font>
+							<span><b>n. 名詞 [C]</b></span>
+							</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr valign="middle">
+							<td colspan="2" valign="middle">
+							<span><b>試驗</b></span>, <span>A simple test will show if this is real gold. 簡單的試驗就能證明這是否是真金。</span>
+														<span><br>
+							<span><b>試驗</b></span>, <span>A simple test will show if this is real gold. 簡單的試驗就能證明這是否是真金。</span>
+							</td>
+						</tr>
+					</tbody>
+				</table> --></div>
+		</td>
+		<td align="right">
+		<button onclick="saveVocabularyCard();">Save</button>
+		</td>
+	</tr>
+</table>
+</body>
+</html>

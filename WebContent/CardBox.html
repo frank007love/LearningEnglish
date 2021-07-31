@@ -1,0 +1,79 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Create Card</title>
+<link type="text/css" href="css/south-street/jquery-ui-1.8.10.custom.css" rel="stylesheet" />
+<script type="text/javascript" src="js/jquery-1.4.4.min.js"></script>
+<script type="text/javascript" src="js/jquery-ui-1.8.10.custom.min.js"></script>
+<script type="text/javascript">
+	$(function(){
+		init();
+	});
+	function init(){
+		showLoading();
+		loadPlayPanel();
+
+	}
+	function showVocabularyCards(data){
+		var root = $(data).find('root');
+		
+	}
+	function showLoading(){
+		$('#content').html('<img src="images/loading.gif"/>Loading...');
+	}	
+	
+	function hideLoading(){
+		$('#content').html('');
+	}	
+	
+	function loadPlayPanel(){
+		$('#content').empty();
+		$('#content').load('PlayCardPanel.html');
+	}
+	
+	function loadManagementPanel(){
+		window.alert('上星期睡不到40hr, 讓我暫時休息吧...');
+	}
+	
+	function loadDownloadPanel(){
+		window.alert('想Download? 我都要當機了...');
+	}
+	
+	
+</script>
+		<style type="text/css">
+			ul#icons {margin: 0; padding: 0;}
+			ul#icons li {margin: 2px; position: relative; padding: 4px 0; cursor: pointer; float: left;  list-style: none;}
+			ul#icons span.ui-icon {float: left; margin: 0 4px;}
+		</style>	
+</head>
+<body>
+<h3>Vocabulary CardBox</h3>
+<div>
+	<table border="0" width="80%" style="margin-left: 20px">
+		<tr>
+			<td id="main-actions">
+				<ul id="icons" class="ui-widget ui-helper-clearfix">
+				
+				<li onclick="loadPlayPanel();" class="ui-state-default ui-corner-all" title="Play Vocabulary Cards">
+					<span class="ui-icon ui-icon-play"></span>
+				</li><li>Play&nbsp;</li>
+				<li onclick="loadManagementPanel();" class="ui-state-default ui-corner-all" title="Manage Vocabulary Cards"><span class="ui-icon ui-icon-gear"></span></li>
+				<li>Management&nbsp;</li>	
+				<li  onclick="loadDownloadPanel();" class="ui-state-default ui-corner-all" title="Download"><span class="ui-icon ui-icon-arrowthickstop-1-s"></span></li>
+				<li>Download&nbsp;</li>	
+				</ul>
+			</td>
+		</tr>
+		<tr>
+			<td>
+				<div id="content">
+				</div>
+			</td>
+		</tr>
+	</table>
+</div>
+<br>
+</body>
+</html>
